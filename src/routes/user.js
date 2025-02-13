@@ -32,13 +32,13 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
 
         const loggedInUser = req.user;
 
-        const connectionRequests = ConnectionRequest.find({
+        const connectionRequests = await ConnectionRequest.find({
             $or: [
                 {fromUserId: loggedInUser._id, status: "accepted"},
                 {toUserId: loggedInUser._id, status: "accepted"},
             ],
-        }).populate("fromUserId", ["firstName", "lastName", "photoUrl", "age", "gender", "skills"])
-          .populate("toUserId", ["firstName", "lastName", "photoUrl", "age", "gender", "skills"]);
+        }).populate("fromUserId", ["firstName", "lastName", "photoUrl", "age", "gender", "skills", "about"])
+          .populate("toUserId", ["firstName", "lastName", "photoUrl", "age", "gender", "skills", "about"]);
 
         const data = connectionRequests.map((row) => {
             if(row.fromUserId._id.toString() === loggedInUser._id.toString()) {
@@ -51,12 +51,12 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
         res.json({data});
 
     } catch (err) {
-        res.status(400).send("Error : ", err.message);
+        res.status(400).send("Error : " + err.message);
     }
 });
 
 userRouter.get("/feed", userAuth, async (req, res) => {
-   
+    
     try {
 
         const loggedInUser = req.user;
@@ -85,7 +85,7 @@ userRouter.get("/feed", userAuth, async (req, res) => {
                 {_id: {$nin: Array.from(hideFromUsers)}},
                 {_id: {$ne: loggedInUser._id}},
             ]
-        }).select(["firstName", "lastName", "photoUrl", "age", "gender", "skills"]).skip(skip).limit(limit);
+        }).select(["firstName", "lastName", "photoUrl", "age", "gender", "skills", "about"]).skip(skip).limit(limit);
 
         res.json({message: "users fetched successfully!!!", data: users,});
 
